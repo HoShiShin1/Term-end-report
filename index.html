@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+  <meta charset="UTF-8">
+  <title>ENS（The Ethereum Name Service）ドメイン名の登録状況を確認</title>
+  <style>
+    #txt{
+      width: 30%;
+      height: 32px;
+      margin: 50px auto 10px;
+      display: block;
+    }
+    .staues{
+      width: 30%;
+      margin: 0 auto;
+    }
+  </style>
+
+</head>
+<body>
+  <input type="text" id="txt" value="" placeholder="内容を入力してください"/>
+  <p class="staues">状態：<span id="stateText"></span></p>
+ 
+</body>
+</html>
+
+<script src="jquery-1.12.4.js"></script>
+<script>
+  $(function () {
+    function debounce(func, wait=500, immediate=false) {
+    var timeout
+    return function() {
+        var context = this
+        var args = arguments
+
+        if (timeout) clearTimeout(timeout)
+        if (immediate) {
+            // 既に実行されている場合は、それ以上実行しない
+            var callNow = !timeout
+            timeout = setTimeout(function() {
+                timeout = null
+            }, wait)
+            if (callNow) func.apply(context, args)
+        } else {
+            timeout = setTimeout(function() {
+                func.apply(context, args)
+            }, wait)
+        }
+    }
+}
+
+    $('#txt').on('keyup',debounce(function (e) {
+      $('#stateText').text('')
+      if (e.target.value) {
+        $.ajax({
+          url: 'https://whois3.weapi.co/api/v1/methods/get_name_info', // url
+          data: {name:e.target.value}, // 
+          type: 'GET', //
+          dataType: 'json', // 
+          success: function(data){
+            console.log(data,'success');
+            if(data.error == 0){
+              if (data.data.status == 0) {
+                $('#stateText').text('利用可能')
+              }
+              if (data.data.status == 10) {
+                $('#stateText').text('一時的な保険料')
+              }
+              if (data.data.status == 20) {
+                $('#stateText').text('保護期間')
+              }
+              if (data.data.status == 30) {
+                $('#stateText').text('登録済み')
+              }
+              if (data.data.status == 40) {
+                $('#stateText').text('予約済み')
+              }
+            }
+
+          }, // 
+          timeout: 2000, // 
+          error: function(){console.log('間違い');}, // ERROR
+          headers: {}	// 
+        })
+
+      }else{
+        alert('内容を入力してください')
+      }
+
+    }))
+
+
+  });
+</script>
